@@ -42,11 +42,22 @@ export default function DivinationPage() {
     if (!result) return
 
     setSaving(true)
+
+    // 为 NaJiaResult 增加 name / symbol 别名字段，确保与 HexagramData 接口兼容
+    const toRecordHexagram = (pan: typeof result.originalPan) => ({
+      ...pan,
+      name: pan.hexagramName,
+      symbol: pan.hexagramSymbol,
+    })
+
+    const hexagramOriginal = toRecordHexagram(result.originalPan)
+    const hexagramChanged = result.changedPan ? toRecordHexagram(result.changedPan) : null
+
     const { error } = await supabase.from('divination_records').insert({
       user_id: session.user.id,
       question,
-      hexagram_original: result.originalPan,
-      hexagram_changed: result.changedPan,
+      hexagram_original: hexagramOriginal,
+      hexagram_changed: hexagramChanged,
       changing_lines: result.castResult.changingLines,
       cast_result: JSON.stringify(result.castResult.lines),
       interpretation: result.interpretation,
@@ -62,7 +73,7 @@ export default function DivinationPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-center text-primary-900 mb-2">纳甲六爻占卜</h1>
+      <h1 className="text-3xl font-bold text-center text-primary-900 mb-2">一念通玄 · 纳甲六爻</h1>
       <p className="text-center text-gray-500 mb-8">京房纳甲筮法 · 三枚铜钱起卦 · 六亲六兽排盘</p>
 
       {/* Question input */}
