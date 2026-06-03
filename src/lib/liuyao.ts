@@ -398,7 +398,7 @@ export function performFullDivination(question: string): FullDivinationResult {
   const changedPan = castResult.changedHexagram
     ? buildNaJiaPan(castResult, castResult.changedHexagram, true)
     : null
-  const interpretation = generateInterpretation(originalPan, changedPan, question)
+  const interpretation = ''
 
   return { castResult, originalPan, changedPan, interpretation }
 }

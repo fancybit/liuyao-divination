@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { DivinationRecord } from '@/types'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Loader2, Trash2, Eye, EyeOff, Calendar, Tag, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, Trash2, Eye, EyeOff, Calendar, Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import HexagramCard from '@/components/HexagramCard'
 import { NaJiaResult } from '@/lib/liuyao'
@@ -15,6 +15,8 @@ export default function RecordsPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+  const [aiLoadingId, setAiLoadingId] = useState<number | null>(null)
+  const [aiInterpretations, setAiInterpretations] = useState<Record<number, string>>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -74,6 +76,29 @@ export default function RecordsPage() {
       else next.add(id)
       return next
     })
+  }
+
+  const handleAiInterpret = async (record: DivinationRecord) => {
+    setAiLoadingId(record.id)
+    try {
+      const res = await fetch('/api/interpret', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          original: record.hexagram_original,
+          changed: record.hexagram_changed,
+          question: record.question,
+        }),
+      })
+      const data = await res.json()
+      setAiInterpretations(prev => ({
+        ...prev,
+        [record.id]: data.interpretation || data.error || '解卦失败',
+      }))
+    } catch {
+      setAiInterpretations(prev => ({ ...prev, [record.id]: '解卦请求失败' }))
+    }
+    setAiLoadingId(null)
   }
 
   if (loading) {
@@ -192,6 +217,33 @@ export default function RecordsPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* AI解卦 */}
+                    {aiInterpretations[record.id] && (
+                      <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <h3 className="text-sm font-semibold text-green-700 mb-2 flex items-center">
+                          <Sparkles size={14} className="mr-1" />千问解卦
+                        </h3>
+                        <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
+                          {aiInterpretations[record.id]}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="text-center pt-2 border-t border-gray-100">
+                      <button
+                        onClick={() => handleAiInterpret(record)}
+                        disabled={aiLoadingId === record.id}
+                        className="inline-flex items-center space-x-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-500 to-sky-500 text-white rounded-lg hover:from-blue-600 hover:to-sky-600 transition-all disabled:opacity-50"
+                      >
+                        {aiLoadingId === record.id ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={16} />
+                        )}
+                        <span>{aiLoadingId === record.id ? '解卦中...' : '千问 AI 解卦'}</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

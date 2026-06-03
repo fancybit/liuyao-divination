@@ -15,10 +15,13 @@ export default function DivinationPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  const [interpreting, setInterpreting] = useState(false)
+
   const handleCast = useCallback(() => {
     setCasting(true)
     setCastProgress(0)
     setSaved(false)
+    setInterpreting(false)
 
     let i = 0
     const interval = setInterval(() => {
@@ -29,6 +32,27 @@ export default function DivinationPage() {
         const divResult = performFullDivination(question)
         setResult(divResult)
         setCasting(false)
+
+        // 异步调千问解卦
+        setInterpreting(true)
+        fetch('/api/interpret', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            original: divResult.originalPan,
+            changed: divResult.changedPan,
+            question,
+          }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            setResult(prev => prev ? { ...prev, interpretation: data.interpretation || data.error || '解卦失败' } : prev)
+            setInterpreting(false)
+          })
+          .catch(() => {
+            setResult(prev => prev ? { ...prev, interpretation: '解卦请求失败，请重试' } : prev)
+            setInterpreting(false)
+          })
       }
     }, 600)
   }, [question])
@@ -166,9 +190,18 @@ export default function DivinationPage() {
           {/* Interpretation */}
           <div className="card">
             <h2 className="text-xl font-bold text-primary-800 mb-4">解卦</h2>
-            <div className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
-              {result.interpretation}
-            </div>
+            {interpreting ? (
+              <div className="flex items-center space-x-3 text-gray-500">
+                <Loader2 className="animate-spin" size={20} />
+                <span>千问正在解卦中...</span>
+              </div>
+            ) : result.interpretation ? (
+              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+                {result.interpretation}
+              </div>
+            ) : (
+              <div className="text-gray-400 text-sm">解卦失败，可点击重新起卦重试</div>
+            )}
           </div>
 
           {/* Save button */}
