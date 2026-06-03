@@ -9,6 +9,7 @@ import { Menu, X, Coins, History, Network, User as UserIcon, LogOut } from 'luci
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null)
+  const [username, setUsername] = useState<string>('')
   const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -16,12 +17,20 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
+      if (session?.user) fetchProfile(session.user.id)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) fetchProfile(session.user.id)
+      else setUsername('')
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('username').eq('id', userId).single()
+    if (data?.username) setUsername(data.username)
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -41,7 +50,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl">☯</span>
-            <span className="text-xl font-bold text-primary-800">六爻占卜</span>
+            <span className="text-xl font-bold text-primary-800">一念通玄</span>
           </Link>
 
           {/* Desktop nav */}
@@ -64,7 +73,7 @@ export default function Navbar() {
               <div className="flex items-center space-x-3">
                 <Link href="/profile" className="flex items-center space-x-1 text-gray-600 hover:text-primary-600">
                   <UserIcon size={18} />
-                  <span className="text-sm">{user.email?.split('@')[0]}</span>
+                  <span className="text-sm">{username || user.email?.split('@')[0]}</span>
                 </Link>
                 <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors" title="退出登录">
                   <LogOut size={18} />
