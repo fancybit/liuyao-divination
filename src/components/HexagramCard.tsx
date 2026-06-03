@@ -63,8 +63,10 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
 
   const lineData = HEXAGRAM_LINE_TEXTS[hexagramId];
 
-  // 取卦名首字或核心字用于徽章
-  const badgeChar = hexagramName.replace(/为|之/g, "").charAt(0);
+  // 卦名徽章字符：八纯卦取首字（乾/坤/坎/离/震/巽/艮/兑），其余取尾字（随/夬/屯/蒙...）
+  const badgeChar = hexagramName.includes('为')
+    ? hexagramName.charAt(0)
+    : hexagramName.charAt(hexagramName.length - 1);
 
   return (
     <div className="w-full max-w-lg mx-auto">
