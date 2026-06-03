@@ -25,13 +25,13 @@ export default function RegisterPage() {
       password,
       options: {
         data: { username },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success('注册成功！请检查邮箱确认（如已关闭邮箱验证则可直接登录）')
-      router.push('/login')
+      toast.success('注册成功！已发送验证邮件，请查收收件箱并点击确认链接')
     }
     setLoading(false)
   }

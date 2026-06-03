@@ -3,50 +3,9 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { performFullDivination } from '@/lib/liuyao'
-import { NaJiaLineInfo } from '@/lib/liuyao'
 import toast from 'react-hot-toast'
 import { RefreshCw, Save, Loader2 } from 'lucide-react'
-
-function NaJiaTable({ lines, title, highlightPositions }: { lines: NaJiaLineInfo[]; title: string; highlightPositions?: number[] }) {
-  return (
-    <div className="mb-4">
-      <h3 className="text-sm font-semibold text-primary-700 mb-2">{title}</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-primary-50 text-primary-700">
-              <th className="p-2 border text-center w-14">爻位</th>
-              <th className="p-2 border text-center w-14">天干</th>
-              <th className="p-2 border text-center w-14">地支</th>
-              <th className="p-2 border text-center w-16">六亲</th>
-              <th className="p-2 border text-center w-16">六兽</th>
-              <th className="p-2 border text-center w-14">世应</th>
-              <th className="p-2 border text-center">阴阳</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...lines].reverse().map((line) => {
-              const isChanging = highlightPositions?.includes(line.position)
-              return (
-                <tr key={line.position} className={`text-center ${isChanging ? 'bg-amber-50' : ''}`}>
-                  <td className="p-1.5 border">{line.position === 6 ? '上' : line.position === 1 ? '初' : `${line.position}`}</td>
-                  <td className="p-1.5 border font-medium">{line.naJia}</td>
-                  <td className="p-1.5 border font-medium">{line.naZhi}</td>
-                  <td className={`p-1.5 border ${line.liuQin === '妻财' ? 'text-green-600' : line.liuQin === '官鬼' ? 'text-red-600' : line.liuQin === '子孙' ? 'text-blue-600' : line.liuQin === '父母' ? 'text-yellow-700' : 'text-gray-600'} font-medium`}>{line.liuQin}</td>
-                  <td className="p-1.5 border text-gray-600">{line.liuShou}</td>
-                  <td className={`p-1.5 border font-bold ${line.shiYing === '世' ? 'text-red-500' : line.shiYing === '应' ? 'text-blue-500' : ''}`}>{line.shiYing || '-'}</td>
-                  <td className={`p-1.5 border ${line.yinYang === '阳' ? 'text-cyan-600' : 'text-purple-600'}`}>
-                    {line.yinYang}{isChanging && <span className="ml-1 text-xs text-red-500">动</span>}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
+import HexagramCard from '@/components/HexagramCard'
 
 export default function DivinationPage() {
   const [question, setQuestion] = useState('')
@@ -157,39 +116,26 @@ export default function DivinationPage() {
       {/* Result */}
       {result && !casting && (
         <div className="space-y-6">
-          {/* Hexagram header */}
-          <div className="card">
-            <div className="text-center mb-2">
-              <span className="text-3xl">{result.originalPan.hexagramSymbol}</span>
-              <h2 className="text-2xl font-bold text-primary-800">{result.originalPan.hexagramName}</h2>
-              {result.changedPan && (
-                <p className="text-primary-600 mt-1">
-                  之 <span className="text-xl">{result.changedPan.hexagramSymbol}</span> {result.changedPan.hexagramName}
-                </p>
-              )}
-            </div>
-            <div className="flex justify-center gap-6 text-sm text-gray-500 mt-2">
-              <span>宫：{result.originalPan.palace}宫（{result.originalPan.palaceElement}）</span>
-              <span>世：第{result.originalPan.shiYao}爻</span>
-              <span>应：第{result.originalPan.yingYao}爻</span>
-              <span>日干：{result.originalPan.dayGan}</span>
-            </div>
-          </div>
+          {/* 本卦牌面 */}
+          <HexagramCard naJiaResult={result.originalPan} />
 
-          {/* NaJia Pan */}
-          <div className="card">
-            <NaJiaTable
-              lines={result.originalPan.lines}
-              title="本卦纳甲排盘"
-              highlightPositions={result.castResult.changingLines}
-            />
-            {result.changedPan && (
-              <NaJiaTable
-                lines={result.changedPan.lines}
-                title="变卦纳甲排盘"
-              />
-            )}
-          </div>
+          {/* 变卦牌面 */}
+          {result.changedPan && (
+            <>
+              <div className="text-center py-2">
+                <span className="text-4xl font-serif text-amber-700">⇩</span>
+                <p className="text-sm text-amber-600 font-serif mt-1">
+                  之{result.changedPan.hexagramName}
+                  {result.castResult.changingLines.length > 0 && (
+                    <span className="ml-2 text-red-500">
+                      （动爻：第 {result.castResult.changingLines.join('、')} 爻）
+                    </span>
+                  )}
+                </p>
+              </div>
+              <HexagramCard naJiaResult={result.changedPan} />
+            </>
+          )}
 
           {/* Six Relatives summary */}
           <div className="card">
@@ -204,11 +150,6 @@ export default function DivinationPage() {
                 )
               })}
             </div>
-            {result.castResult.changingLines.length > 0 && (
-              <p className="mt-3 text-sm text-red-500">
-                动爻：第 {result.castResult.changingLines.join('、')} 爻
-              </p>
-            )}
           </div>
 
           {/* Interpretation */}
