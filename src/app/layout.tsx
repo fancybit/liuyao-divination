@@ -4,8 +4,8 @@ import { Toaster } from 'react-hot-toast'
 import Navbar from '@/components/Navbar'
 
 export const metadata: Metadata = {
-  title: '六爻占卜 - 易经在线占卜',
-  description: '易经六爻在线占卜系统，支持多用户、占卜记录和六度关系网',
+  title: '一念通玄 - 易经六爻占卜',
+  description: '一念通玄，以三枚铜钱问天地之道。易经六爻在线占卜，含纳甲排盘、卦辞爻辞、占卜记录',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

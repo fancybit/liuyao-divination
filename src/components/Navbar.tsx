@@ -36,7 +36,7 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="bg-white border-b border-amber-200 shadow-sm sticky top-0 z-50">
+    <nav className="bg-white border-b border-sky-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
@@ -85,7 +85,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden pb-4 border-t border-amber-100 pt-2">
+          <div className="md:hidden pb-4 border-t border-sky-100 pt-2">
             {navLinks.map(link => (
               <Link
                 key={link.href}

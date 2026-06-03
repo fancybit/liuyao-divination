@@ -123,8 +123,8 @@ export default function DivinationPage() {
           {result.changedPan && (
             <>
               <div className="text-center py-2">
-                <span className="text-4xl font-serif text-amber-700">⇩</span>
-                <p className="text-sm text-amber-600 font-serif mt-1">
+                <span className="text-4xl font-serif text-sky-600">⇩</span>
+                <p className="text-sm text-sky-600 font-serif mt-1">
                   之{result.changedPan.hexagramName}
                   {result.castResult.changingLines.length > 0 && (
                     <span className="ml-2 text-red-500">

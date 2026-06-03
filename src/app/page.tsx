@@ -8,7 +8,7 @@ export default function Home() {
       <div className="mb-12 float-anim">
         <span className="text-8xl">☯</span>
       </div>
-      <h1 className="text-5xl font-bold text-primary-900 mb-4">六爻占卜</h1>
+      <h1 className="text-5xl font-bold text-primary-900 mb-4">一念通玄</h1>
       <p className="text-xl text-gray-600 max-w-lg mb-2">
         以三枚铜钱，问天地之道
       </p>
