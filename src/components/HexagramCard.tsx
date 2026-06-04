@@ -2,6 +2,7 @@
 
 import { NaJiaResult } from "@/lib/liuyao";
 import { HEXAGRAM_LINE_TEXTS, HexagramLineText } from "@/lib/hexagram-lines";
+import { useTranslations } from "next-intl";
 
 const TRIGRAM_SYMBOLS: Record<string, string> = {
   "乾": "☰", "坤": "☷", "震": "☳", "巽": "☴",
@@ -48,6 +49,7 @@ interface HexagramCardProps {
 }
 
 export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
+  const th = useTranslations('hexagram')
   const { hexagramId, hexagramName, palace, shiYao, yingYao, lines } = naJiaResult;
   const hexInfo = HEXAGRAM_FULL[hexagramId];
   const fullName = hexInfo?.name || hexagramName;
@@ -76,9 +78,9 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
         <div className="relative p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-left">
-              <div className="text-xs text-sky-700/70 tracking-wider font-serif">{palace}宫</div>
+              <div className="text-xs text-sky-700/70 tracking-wider font-serif">{th('palace', { name: palace })}</div>
               <div className="text-[10px] text-sky-600/60 tracking-wide font-serif mt-0.5">
-                {upperTrigram}上{lowerTrigram}下
+                {th('trigramLayout', { upper: upperTrigram, lower: lowerTrigram })}
               </div>
               <div className="text-[10px] text-sky-500/50 mt-0.5 font-serif">{trigramSymbol}</div>
             </div>
@@ -101,8 +103,8 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
 
             <div className="text-right">
               <div className="text-3xl sm:text-4xl font-bold text-sky-800/20 font-serif leading-none">{hexagramId}</div>
-              <div className="text-[10px] text-sky-600/60 font-serif mt-0.5">{hexagramName}卦</div>
-              <div className="text-[10px] text-sky-500/50 mt-0.5 font-serif">第{hexagramId}</div>
+              <div className="text-[10px] text-sky-600/60 font-serif mt-0.5">{th('hexagramBadge', { name: hexagramName })}</div>
+              <div className="text-[10px] text-sky-500/50 mt-0.5 font-serif">{th('ordinal', { num: hexagramId })}</div>
             </div>
           </div>
 
@@ -114,11 +116,11 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
 
           <div className="space-y-1">
             <div className="flex items-center text-[10px] text-sky-600/50 font-serif px-1">
-              <span className="w-14 text-center">六兽</span>
-              <span className="w-14 text-center">干支</span>
+              <span className="w-14 text-center">{th('liuShou')}</span>
+              <span className="w-14 text-center">{th('ganZhi')}</span>
               <span className="flex-1" />
-              <span className="w-16 text-center">六亲</span>
-              <span className="w-10 text-center">世应</span>
+              <span className="w-16 text-center">{th('liuQin')}</span>
+              <span className="w-10 text-center">{th('shiYing')}</span>
             </div>
 
             {[...lines].reverse().map((line, idx) => {
@@ -147,15 +149,15 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
                       </div>
                     )}
                     {line.changing && (
-                      <span className="ml-2 text-[10px] text-red-500 font-serif bg-red-50 px-1 rounded">动</span>
+                      <span className="ml-2 text-[10px] text-red-500 font-serif bg-red-50 px-1 rounded">{th('dong')}</span>
                     )}
                   </div>
 
                   <span className="w-16 text-center text-xs font-serif text-slate-800">{line.liuQin}</span>
 
                   <span className="w-10 text-center">
-                    {isShi && <span className="text-[10px] font-bold text-sky-600 bg-sky-100 px-1.5 py-0.5 rounded font-serif">世</span>}
-                    {isYing && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-serif">应</span>}
+                    {isShi && <span className="text-[10px] font-bold text-sky-600 bg-sky-100 px-1.5 py-0.5 rounded font-serif">{th('shi')}</span>}
+                    {isYing && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-serif">{th('ying')}</span>}
                   </span>
                 </div>
               );
@@ -171,18 +173,18 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
               </div>
 
               <div className="px-2 py-2 rounded-lg bg-sky-50/30 border border-sky-200/20">
-                <div className="text-[10px] text-sky-600/60 font-serif mb-1 tracking-wider">卦辞</div>
+                <div className="text-[10px] text-sky-600/60 font-serif mb-1 tracking-wider">{th('guaCi')}</div>
                 <p className="text-sm text-slate-800 leading-relaxed font-serif">{lineData.guaCi}</p>
               </div>
 
               {lineData.xiangZhuan && (
                 <div className="px-2">
-                  <p className="text-xs text-slate-500 leading-relaxed font-serif">《象》曰：{lineData.xiangZhuan}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed font-serif">《{th('xiangZhuan')}》曰：{lineData.xiangZhuan}</p>
                 </div>
               )}
 
               <div className="space-y-1.5 px-2">
-                <div className="text-[10px] text-sky-600/60 font-serif tracking-wider mb-1">爻辞</div>
+                <div className="text-[10px] text-sky-600/60 font-serif tracking-wider mb-1">{th('yaoCi')}</div>
                 {lineData.lines.map((l: HexagramLineText) => (
                   <div key={l.position} className="flex items-start gap-3 py-1 text-xs">
                     <span className="text-sky-700 font-serif whitespace-nowrap font-medium min-w-[2rem]">{l.title}</span>
@@ -194,7 +196,7 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
               {lineData.tuanZhuan && (
                 <div className="px-2 pt-1 pb-2 border-t border-sky-200/20 mt-3">
                   <p className="text-[11px] text-slate-400 leading-relaxed font-serif">
-                    《彖》曰：{lineData.tuanZhuan.slice(0, 80)}{lineData.tuanZhuan.length > 80 ? "…" : ""}
+                    《{th('tuanZhuan')}》曰：{lineData.tuanZhuan.slice(0, 80)}{lineData.tuanZhuan.length > 80 ? "…" : ""}
                   </p>
                 </div>
               )}
@@ -204,7 +206,7 @@ export default function HexagramCard({ naJiaResult }: HexagramCardProps) {
       </div>
 
       <div className="text-center mt-2 text-xs text-slate-400 tracking-widest font-serif">
-        第 {hexagramId} 卦 · {fullName}
+        {th('footer', { id: hexagramId, name: fullName })}
       </div>
     </div>
   );

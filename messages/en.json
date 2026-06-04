@@ -1,0 +1,167 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "notFound": "Not found",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit"
+  },
+  "site": {
+    "title": "Yi Nian Tong Xuan - I Ching Hexagram Divination",
+    "description": "Yi Nian Tong Xuan: consult the way of Heaven and Earth with three coins. I Ching online divination with Najia charting, hexagram & line texts, and divination records."
+  },
+  "home": {
+    "title": "Yi Nian Tong Xuan",
+    "heroSub": "Consult the Way of Heaven and Earth with Three Coins",
+    "heroDesc": "Following the 64 hexagram system of the I Ching, cast coins to form hexagrams, observe images and interpret texts. Sincerity brings clarity; doubt invites questions.",
+    "cta": "Start Divination",
+    "features": {
+      "coins": {
+        "title": "Three-Coin Casting",
+        "desc": "Simulate tossing three coins six times to generate hexagram lines, including original and changing hexagrams"
+      },
+      "history": {
+        "title": "Divination Records",
+        "desc": "Automatically save each divination and review historical hexagrams and interpretations anytime"
+      },
+      "network": {
+        "title": "Six-Degree Network",
+        "desc": "Visualize divination connections between users and explore kindred spirits"
+      }
+    },
+    "stats": {
+      "multiUser": "Multi-User",
+      "hexagramCount": "Hexagram System",
+      "lineCount": "Line Interpretations"
+    }
+  },
+  "nav": {
+    "brand": "Yi Nian Tong Xuan",
+    "divination": "Divination",
+    "records": "Records",
+    "network": "Network",
+    "profile": "Profile",
+    "login": "Login",
+    "logout": "Logout",
+    "language": "Language"
+  },
+  "divination": {
+    "title": "Yi Nian Tong Xuan · Najia Liuyao",
+    "subtitle": "Jing Fang Najia Method · Three-Coin Casting · Six Relatives & Six Beasts",
+    "questionLabel": "What do you wish to ask?",
+    "questionPlaceholder": "e.g. How will my career be this year?",
+    "questionOptional": "(optional)",
+    "cast": "Cast Coins",
+    "recast": "Cast Again",
+    "casting": "Casting coins...",
+    "changedTo": "→",
+    "changingLine": "Changing Line",
+    "sixRelatives": "Six Relatives Distribution",
+    "interpretation": "Interpretation",
+    "aiInterpreting": "AI is interpreting...",
+    "interpretFail": "Interpretation failed. Try casting again.",
+    "savedToast": "Saved",
+    "saveRecord": "Save Record",
+    "saving": "Saving...",
+    "loginRequired": "Please log in before saving",
+    "saveSuccess": "Record saved",
+    "saveFail": "Failed to save",
+    "noQuestion": "No specific question",
+    "changingLinesCount": "Changing Lines: {count}"
+  },
+  "records": {
+    "title": "Divination Records",
+    "empty": "No divination records yet",
+    "goDivination": "Go Divinate",
+    "unknownHexagram": "Unknown Hexagram",
+    "changingLine": "Changing Line: {pos}",
+    "expand": "View Chart & Interpretation",
+    "collapse": "Collapse",
+    "interpretation": "Interpretation",
+    "aiInterpret": "AI Interpret",
+    "aiInterpreting": "Interpreting...",
+    "interpretFail": "Interpretation failed",
+    "public": "Public",
+    "private": "Private",
+    "aiInterpreted": "AI Interpreted",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this divination record?",
+    "loadFail": "Failed to load",
+    "deleteFail": "Failed to delete",
+    "deleted": "Deleted",
+    "setPrivate": "Set to private",
+    "setPublic": "Set to public",
+    "operationFail": "Operation failed"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "loading": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "register": "Register",
+      "success": "Login successful"
+    },
+    "register": {
+      "title": "Register",
+      "username": "Username",
+      "usernamePlaceholder": "Optional",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Register",
+      "loading": "Registering...",
+      "hasAccount": "Already have an account?",
+      "login": "Login",
+      "passwordMin": "Password must be at least 6 characters",
+      "success": "Registration successful! A verification email has been sent. Please check your inbox and click the confirmation link."
+    }
+  },
+  "profile": {
+    "user": "User",
+    "joined": "Joined",
+    "bio": "Bio",
+    "bioPlaceholder": "Write a short bio...",
+    "bioEmpty": "This user hasn't written a bio yet...",
+    "saveSuccess": "Bio updated",
+    "saveFail": "Failed to save",
+    "stats": {
+      "total": "Total Divinations",
+      "public": "Public Records",
+      "days": "Days Since First"
+    },
+    "recentDivinations": "Recent Divinations",
+    "noRecords": "No divination records yet"
+  },
+  "network": {
+    "title": "Six-Degree Network",
+    "subtitle": "Visualize divination connections between users",
+    "stats": {
+      "users": "Diviners",
+      "connections": "Connections"
+    },
+    "empty": "No network data yet",
+    "emptyDesc": "Once users start divining and form connections, the network will appear here",
+    "legend": "Node size = divination count | Lines = divination connections (views/interactions)"
+  },
+  "hexagram": {
+    "palace": "{name} Palace",
+    "trigramLayout": "{upper} above {lower} below",
+    "hexagramBadge": "{name} Hexagram",
+    "ordinal": "#{num}",
+    "liuShou": "Six Beasts",
+    "ganZhi": "Stem-Branch",
+    "liuQin": "Six Rel.",
+    "shiYing": "S/Y",
+    "dong": "Δ",
+    "shi": "S",
+    "ying": "Y",
+    "guaCi": "Judgment",
+    "yaoCi": "Lines",
+    "xiangZhuan": "Image",
+    "tuanZhuan": "Commentary",
+    "footer": "Hexagram {id} · {name}"
+  }
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import { Loader2, Users } from 'lucide-react'
 
@@ -17,6 +18,7 @@ interface GraphLink {
 }
 
 export default function NetworkPage() {
+  const t = useTranslations('network')
   const [loading, setLoading] = useState(true)
   const [userCount, setUserCount] = useState(0)
   const [connectionCount, setConnectionCount] = useState(0)
@@ -210,18 +212,18 @@ export default function NetworkPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center text-primary-900 mb-2">六度关系网</h1>
-      <p className="text-center text-gray-500 mb-8">可视化用户之间的占卜关联</p>
+      <h1 className="text-3xl font-bold text-center text-primary-900 mb-2">{t('title')}</h1>
+      <p className="text-center text-gray-500 mb-8">{t('subtitle')}</p>
 
       {/* Stats */}
       <div className="flex justify-center space-x-8 mb-8">
         <div className="text-center">
           <p className="text-3xl font-bold text-primary-600">{userCount}</p>
-          <p className="text-sm text-gray-500">占卜者</p>
+          <p className="text-sm text-gray-500">{t('stats.users')}</p>
         </div>
         <div className="text-center">
           <p className="text-3xl font-bold text-primary-600">{connectionCount}</p>
-          <p className="text-sm text-gray-500">关联数</p>
+          <p className="text-sm text-gray-500">{t('stats.connections')}</p>
         </div>
       </div>
 
@@ -230,8 +232,8 @@ export default function NetworkPage() {
         {nodes.length === 0 ? (
           <div className="text-center py-16">
             <Users className="mx-auto text-gray-300 mb-4" size={48} />
-            <p className="text-gray-500">暂无关联网数据</p>
-            <p className="text-sm text-gray-400 mt-2">用户开始占卜并建立关联后，关系网将在此显示</p>
+            <p className="text-gray-500">{t('empty')}</p>
+            <p className="text-sm text-gray-400 mt-2">{t('emptyDesc')}</p>
           </div>
         ) : (
           <svg ref={svgRef} className="w-full" style={{ height: '500px', minHeight: '500px' }} viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" />
@@ -240,7 +242,7 @@ export default function NetworkPage() {
 
       {/* Legend */}
       <div className="text-center mt-4 text-sm text-gray-400">
-        节点大小代表占卜次数 | 连线代表占卜关联（如查看/互动）
+        {t('legend')}
       </div>
     </div>
   )

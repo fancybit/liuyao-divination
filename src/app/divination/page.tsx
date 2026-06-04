@@ -5,9 +5,11 @@ import { supabase } from '@/lib/supabase'
 import { performFullDivination } from '@/lib/liuyao'
 import toast from 'react-hot-toast'
 import { RefreshCw, Save, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import HexagramCard from '@/components/HexagramCard'
 
 export default function DivinationPage() {
+  const t = useTranslations('divination')
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState<ReturnType<typeof performFullDivination> | null>(null)
   const [casting, setCasting] = useState(false)
@@ -50,17 +52,17 @@ export default function DivinationPage() {
             setInterpreting(false)
           })
           .catch(() => {
-            setResult(prev => prev ? { ...prev, interpretation: '解卦请求失败，请重试' } : prev)
+            setResult(prev => prev ? { ...prev, interpretation: t('interpretFail') } : prev)
             setInterpreting(false)
           })
       }
     }, 600)
-  }, [question])
+  }, [question, t])
 
   const handleSave = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) {
-      toast.error('请先登录后再保存记录')
+      toast.error(t('loginRequired'))
       return
     }
     if (!result) return
@@ -87,9 +89,9 @@ export default function DivinationPage() {
       interpretation: result.interpretation,
     })
     if (error) {
-      toast.error('保存失败: ' + error.message)
+      toast.error(t('saveFail') + ': ' + error.message)
     } else {
-      toast.success('占卜记录已保存')
+      toast.success(t('saveSuccess'))
       setSaved(true)
     }
     setSaving(false)
@@ -97,18 +99,18 @@ export default function DivinationPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-center text-primary-900 mb-2">一念通玄 · 纳甲六爻</h1>
-      <p className="text-center text-gray-500 mb-8">京房纳甲筮法 · 三枚铜钱起卦 · 六亲六兽排盘</p>
+      <h1 className="text-3xl font-bold text-center text-primary-900 mb-2">{t('title')}</h1>
+      <p className="text-center text-gray-500 mb-8">{t('subtitle')}</p>
 
       {/* Question input */}
       <div className="card mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">所问何事？（选填）</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionLabel')} {t('questionOptional')}</label>
         <input
           type="text"
           className="input-field"
           value={question}
           onChange={e => setQuestion(e.target.value)}
-          placeholder="如：今年事业运如何？"
+          placeholder={t('questionPlaceholder')}
           disabled={casting}
         />
       </div>
@@ -118,13 +120,13 @@ export default function DivinationPage() {
         {!result && !casting && (
           <button onClick={handleCast} className="btn-primary text-lg px-12 py-4 rounded-xl shadow-lg">
             <RefreshCw className="inline mr-2" size={20} />
-            掷币起卦
+            {t('cast')}
           </button>
         )}
         {result && !casting && (
           <button onClick={handleCast} className="btn-outline text-lg px-8 py-3 rounded-xl">
             <RefreshCw className="inline mr-2" size={18} />
-            重新起卦
+            {t('recast')}
           </button>
         )}
       </div>
@@ -132,7 +134,7 @@ export default function DivinationPage() {
       {/* Casting animation */}
       {casting && (
         <div className="card mb-6 text-center">
-          <p className="text-lg text-primary-700 mb-4">正在掷币...</p>
+          <p className="text-lg text-primary-700 mb-4">{t('casting')}</p>
           <div className="space-y-2">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="flex items-center justify-center space-x-2">
@@ -160,10 +162,10 @@ export default function DivinationPage() {
               <div className="text-center py-2">
                 <span className="text-4xl font-serif text-sky-600">⇩</span>
                 <p className="text-sm text-sky-600 font-serif mt-1">
-                  之{result.changedPan.hexagramName}
+                  {t('changedTo')}{result.changedPan.hexagramName}
                   {result.castResult.changingLines.length > 0 && (
                     <span className="ml-2 text-red-500">
-                      （动爻：第 {result.castResult.changingLines.join('、')} 爻）
+                      （{t('changingLine')}：{t('changingLinesCount', { count: result.castResult.changingLines.length })}）
                     </span>
                   )}
                 </p>
@@ -174,7 +176,7 @@ export default function DivinationPage() {
 
           {/* Six Relatives summary */}
           <div className="card">
-            <h3 className="text-sm font-semibold text-primary-700 mb-3">六亲分布</h3>
+            <h3 className="text-sm font-semibold text-primary-700 mb-3">{t('sixRelatives')}</h3>
             <div className="flex flex-wrap gap-2">
               {['父母', '兄弟', '妻财', '官鬼', '子孙'].map(liuQin => {
                 const count = result.originalPan.lines.filter(l => l.liuQin === liuQin).length
@@ -189,29 +191,29 @@ export default function DivinationPage() {
 
           {/* Interpretation */}
           <div className="card">
-            <h2 className="text-xl font-bold text-primary-800 mb-4">解卦</h2>
+            <h2 className="text-xl font-bold text-primary-800 mb-4">{t('interpretation')}</h2>
             {interpreting ? (
               <div className="flex items-center space-x-3 text-gray-500">
                 <Loader2 className="animate-spin" size={20} />
-                <span>千问正在解卦中...</span>
+                <span>{t('aiInterpreting')}</span>
               </div>
             ) : result.interpretation ? (
               <div className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
                 {result.interpretation}
               </div>
             ) : (
-              <div className="text-gray-400 text-sm">解卦失败，可点击重新起卦重试</div>
+              <div className="text-gray-400 text-sm">{t('interpretFail')}</div>
             )}
           </div>
 
           {/* Save button */}
           <div className="text-center">
             {saved ? (
-              <p className="text-green-600 font-medium">已保存</p>
+              <p className="text-green-600 font-medium">{t('savedToast')}</p>
             ) : (
               <button onClick={handleSave} disabled={saving} className="btn-primary">
                 {saving ? <Loader2 className="inline animate-spin mr-2" size={18} /> : <Save className="inline mr-2" size={18} />}
-                {saving ? '保存中...' : '保存记录'}
+                {saving ? t('saving') : t('saveRecord')}
               </button>
             )}
           </div>

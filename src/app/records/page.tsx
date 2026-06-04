@@ -6,11 +6,13 @@ import { DivinationRecord } from '@/types'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, Trash2, Eye, EyeOff, Calendar, Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import toast from 'react-hot-toast'
 import HexagramCard from '@/components/HexagramCard'
 import { NaJiaResult } from '@/lib/liuyao'
 
 export default function RecordsPage() {
+  const t = useTranslations('records')
   const [records, setRecords] = useState<DivinationRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
@@ -38,7 +40,7 @@ export default function RecordsPage() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      toast.error('加载失败')
+      toast.error(t('loadFail'))
     } else {
       setRecords(data || [])
     }
@@ -48,9 +50,9 @@ export default function RecordsPage() {
   const handleDelete = async (id: number) => {
     const { error } = await supabase.from('divination_records').delete().eq('id', id)
     if (error) {
-      toast.error('删除失败')
+      toast.error(t('deleteFail'))
     } else {
-      toast.success('已删除')
+      toast.success(t('deleted'))
       setRecords(prev => prev.filter(r => r.id !== id))
     }
   }
@@ -62,10 +64,10 @@ export default function RecordsPage() {
       .eq('id', record.id)
 
     if (error) {
-      toast.error('操作失败')
+      toast.error(t('operationFail'))
     } else {
       setRecords(prev => prev.map(r => r.id === record.id ? { ...r, is_public: !r.is_public } : r))
-      toast.success(record.is_public ? '已设为私密' : '已设为公开')
+      toast.success(record.is_public ? t('setPrivate') : t('setPublic'))
     }
   }
 
@@ -93,10 +95,10 @@ export default function RecordsPage() {
       const data = await res.json()
       setAiInterpretations(prev => ({
         ...prev,
-        [record.id]: data.interpretation || data.error || '解卦失败',
+        [record.id]: data.interpretation || data.error || t('interpretFail'),
       }))
     } catch {
-      setAiInterpretations(prev => ({ ...prev, [record.id]: '解卦请求失败' }))
+      setAiInterpretations(prev => ({ ...prev, [record.id]: t('interpretFail') }))
     }
     setAiLoadingId(null)
   }
@@ -111,12 +113,12 @@ export default function RecordsPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-center text-primary-900 mb-8">占卜记录</h1>
+      <h1 className="text-3xl font-bold text-center text-primary-900 mb-8">{t('title')}</h1>
 
       {records.length === 0 ? (
         <div className="card text-center py-12">
-          <p className="text-gray-500 text-lg mb-4">暂无占卜记录</p>
-          <Link href="/divination" className="btn-primary">去起卦</Link>
+          <p className="text-gray-500 text-lg mb-4">{t('empty')}</p>
+          <Link href="/divination" className="btn-primary">{t('goDivination')}</Link>
         </div>
       ) : (
         <div className="space-y-6">
@@ -125,7 +127,7 @@ export default function RecordsPage() {
             // 兼容旧数据：优先用 name/symbol，回退到 hexagramName/hexagramSymbol
             const origData = record.hexagram_original as unknown as NaJiaResult
             const changedData = record.hexagram_changed as unknown as NaJiaResult | null
-            const displayName = record.hexagram_original?.name || origData?.hexagramName || '未知卦'
+            const displayName = record.hexagram_original?.name || origData?.hexagramName || t('unknownHexagram')
             const displaySymbol = record.hexagram_original?.symbol || origData?.hexagramSymbol || '☯'
 
             return (
@@ -153,7 +155,7 @@ export default function RecordsPage() {
                     </p>
                     {record.changing_lines?.length > 0 && (
                       <p className="text-xs text-red-400 mt-1">
-                        动爻: 第 {record.changing_lines.join('、')} 爻
+                        {t('changingLine').replace('{pos}', record.changing_lines.join('、'))}
                       </p>
                     )}
                   </div>
@@ -161,14 +163,14 @@ export default function RecordsPage() {
                     <button
                       onClick={() => togglePublic(record)}
                       className="text-gray-400 hover:text-primary-600 transition-colors"
-                      title={record.is_public ? '设为私密' : '设为公开'}
+                      title={record.is_public ? t('setPrivate') : t('setPublic')}
                     >
                       {record.is_public ? <Eye size={18} /> : <EyeOff size={18} />}
                     </button>
                     <button
                       onClick={() => handleDelete(record.id)}
                       className="text-gray-400 hover:text-red-500 transition-colors"
-                      title="删除"
+                      title={t('delete')}
                     >
                       <Trash2 size={18} />
                     </button>
@@ -181,7 +183,7 @@ export default function RecordsPage() {
                   className="w-full flex items-center justify-center py-2 text-sm text-primary-600 hover:text-primary-700 transition-colors border-t border-gray-100"
                 >
                   {isExpanded ? <ChevronUp size={16} className="mr-1" /> : <ChevronDown size={16} className="mr-1" />}
-                  {isExpanded ? '收起排盘' : '查看排盘与解卦'}
+                  {isExpanded ? t('collapse') : t('expand')}
                 </button>
 
                 {/* Expanded: HexagramCard(s) + interpretation */}
@@ -211,7 +213,7 @@ export default function RecordsPage() {
                     {/* 解卦 */}
                     {record.interpretation && (
                       <div className="bg-sky-50 rounded-lg p-4 border border-sky-200">
-                        <h3 className="text-sm font-semibold text-primary-700 mb-2">解卦</h3>
+                        <h3 className="text-sm font-semibold text-primary-700 mb-2">{t('interpretation')}</h3>
                         <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
                           {record.interpretation}
                         </div>
@@ -222,7 +224,7 @@ export default function RecordsPage() {
                     {aiInterpretations[record.id] && (
                       <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                         <h3 className="text-sm font-semibold text-green-700 mb-2 flex items-center">
-                          <Sparkles size={14} className="mr-1" />千问解卦
+                          <Sparkles size={14} className="mr-1" />{t('aiInterpret')}
                         </h3>
                         <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
                           {aiInterpretations[record.id]}
@@ -241,7 +243,7 @@ export default function RecordsPage() {
                         ) : (
                           <Sparkles size={16} />
                         )}
-                        <span>{aiLoadingId === record.id ? '解卦中...' : '千问 AI 解卦'}</span>
+                        <span>{aiLoadingId === record.id ? t('aiInterpreting') : t('aiInterpret')}</span>
                       </button>
                     </div>
                   </div>

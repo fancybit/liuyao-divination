@@ -3,14 +3,17 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
-import { Menu, X, Coins, History, Network, User as UserIcon, LogOut } from 'lucide-react'
+import { Menu, X, Coins, History, Network, User as UserIcon, LogOut, Globe } from 'lucide-react'
 
 export default function Navbar() {
+  const t = useTranslations('nav')
   const [user, setUser] = useState<User | null>(null)
   const [username, setUsername] = useState<string>('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -38,10 +41,16 @@ export default function Navbar() {
     router.refresh()
   }
 
+  const switchLocale = (locale: string) => {
+    // Set cookie and reload
+    document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000`
+    window.location.reload()
+  }
+
   const navLinks = [
-    { href: '/divination', label: '起卦占卜', icon: Coins },
-    { href: '/records', label: '占卜记录', icon: History },
-    { href: '/network', label: '关系网', icon: Network },
+    { href: '/divination', label: t('divination'), icon: Coins },
+    { href: '/records', label: t('records'), icon: History },
+    { href: '/network', label: t('network'), icon: Network },
   ]
 
   return (
@@ -50,7 +59,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl">☯</span>
-            <span className="text-xl font-bold text-primary-800">一念通玄</span>
+            <span className="text-xl font-bold text-primary-800">{t('brand')}</span>
           </Link>
 
           {/* Desktop nav */}
@@ -75,15 +84,32 @@ export default function Navbar() {
                   <UserIcon size={18} />
                   <span className="text-sm">{username || user.email?.split('@')[0]}</span>
                 </Link>
-                <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors" title="退出登录">
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors" title={t('logout')}>
                   <LogOut size={18} />
                 </button>
               </div>
             ) : (
               <Link href="/login" className="btn-primary text-sm">
-                登录
+                {t('login')}
               </Link>
             )}
+
+            {/* Language switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen(!langOpen)}
+                className="flex items-center space-x-1 text-gray-400 hover:text-gray-600 transition-colors"
+                title={t('language')}
+              >
+                <Globe size={16} />
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50 min-w-[80px]">
+                  <button onClick={() => switchLocale('zh')} className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-sky-50">中文</button>
+                  <button onClick={() => switchLocale('en')} className="block w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-sky-50">English</button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -110,18 +136,23 @@ export default function Navbar() {
               <>
                 <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center space-x-2 px-4 py-3 text-gray-600 hover:bg-primary-50">
                   <UserIcon size={18} />
-                  <span>个人中心</span>
+                  <span>{t('profile')}</span>
                 </Link>
                 <button onClick={() => { handleLogout(); setMenuOpen(false) }} className="flex items-center space-x-2 px-4 py-3 text-red-500 hover:bg-red-50 w-full">
                   <LogOut size={18} />
-                  <span>退出登录</span>
+                  <span>{t('logout')}</span>
                 </button>
               </>
             ) : (
               <Link href="/login" onClick={() => setMenuOpen(false)} className="block px-4 py-3">
-                <span className="btn-primary text-sm inline-block">登录</span>
+                <span className="btn-primary text-sm inline-block">{t('login')}</span>
               </Link>
             )}
+            {/* Mobile lang switch */}
+            <div className="flex space-x-2 px-4 py-3">
+              <button onClick={() => switchLocale('zh')} className="text-sm text-gray-500 hover:text-primary-600">中文</button>
+              <button onClick={() => switchLocale('en')} className="text-sm text-gray-500 hover:text-primary-600">English</button>
+            </div>
           </div>
         )}
       </div>
