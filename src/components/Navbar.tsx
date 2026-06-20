@@ -6,12 +6,13 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
-import { Menu, X, Coins, History, Network, User as UserIcon, LogOut, Globe, Compass } from 'lucide-react'
+import { Menu, X, Coins, History, Network, User as UserIcon, LogOut, Globe, Compass, Shield } from 'lucide-react'
 
 export default function Navbar() {
   const t = useTranslations('nav')
   const [user, setUser] = useState<User | null>(null)
   const [username, setUsername] = useState<string>('')
+  const [isAdmin, setIsAdmin] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const router = useRouter()
@@ -20,12 +21,20 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+        checkAdmin(session.user.email!)
+      }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setUsername('')
+      if (session?.user) {
+        fetchProfile(session.user.id)
+        checkAdmin(session.user.email!)
+      } else {
+        setUsername('')
+        setIsAdmin(false)
+      }
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -33,6 +42,11 @@ export default function Navbar() {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('username').eq('id', userId).single()
     if (data?.username) setUsername(data.username)
+  }
+
+  const checkAdmin = async (email: string) => {
+    const { data } = await supabase.from('admins').select('id').eq('email', email).maybeSingle()
+    setIsAdmin(!!data)
   }
 
   const handleLogout = async () => {
@@ -95,6 +109,21 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Admin link */}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
+                  pathname.startsWith('/admin')
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50'
+                }`}
+              >
+                <Shield size={18} />
+                <span>{t('admin')}</span>
+              </Link>
+            )}
+
             {/* Language switcher */}
             <div className="relative">
               <button
@@ -147,6 +176,17 @@ export default function Navbar() {
             ) : (
               <Link href="/login" onClick={() => setMenuOpen(false)} className="block px-4 py-3">
                 <span className="btn-primary text-sm inline-block">{t('login')}</span>
+              </Link>
+            )}
+            {/* Mobile admin link */}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-primary-50"
+              >
+                <Shield size={18} />
+                <span>{t('admin')}</span>
               </Link>
             )}
             {/* Mobile lang switch */}

@@ -45,7 +45,8 @@
     "profile": "个人中心",
     "login": "登录",
     "logout": "退出登录",
-    "language": "语言"
+    "language": "语言",
+    "admin": "后台管理"
   },
   "divination": {
     "title": "一念通玄 · 纳甲六爻",
@@ -201,5 +202,38 @@
     "horse": "马星",
     "horseMark": "☆",
     "horseDesc": "马星发动之宫"
+  },
+  "admin": {
+    "title": "后台管理",
+    "noAccess": "无权限",
+    "noAccessDesc": "您没有管理员权限，无法访问此页面。",
+    "adminManagement": "管理员管理",
+    "adminList": "管理员列表",
+    "addAdmin": "添加",
+    "removeAdmin": "移除管理员",
+    "remove": "移除",
+    "adminEmailPlaceholder": "输入邮箱地址",
+    "confirmRemove": "确定移除此管理员？",
+    "initialBadge": "初始",
+    "initialCannotRemove": "初始管理员不可移除",
+    "id": "ID",
+    "user": "用户",
+    "question": "问题",
+    "hexagram": "本卦",
+    "changedHexagram": "变卦",
+    "public": "公开",
+    "private": "私密",
+    "filterAll": "全部",
+    "createdAt": "创建时间",
+    "actions": "操作",
+    "detail": "详情",
+    "interpretationZh": "中文解卦",
+    "interpretationEn": "英文解卦",
+    "castResult": "排盘数据",
+    "hexagramData": "卦象数据",
+    "searchByEmail": "按邮箱搜索用户",
+    "totalRecords": "共 {count} 条记录",
+    "noRecords": "暂无占卜记录",
+    "pageInfo": "第 {page}/{total} 页"
   }
 }

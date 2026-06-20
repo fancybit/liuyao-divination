@@ -45,7 +45,8 @@
     "profile": "Profile",
     "login": "Login",
     "logout": "Logout",
-    "language": "Language"
+    "language": "Language",
+    "admin": "Admin"
   },
   "divination": {
     "title": "Yi Nian Tong Xuan · Najia Liuyao",
@@ -201,5 +202,38 @@
     "horse": "Horse",
     "horseMark": "☆",
     "horseDesc": "Horse Star Palace"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "noAccess": "Access Denied",
+    "noAccessDesc": "You do not have admin privileges to access this page.",
+    "adminManagement": "Admin Management",
+    "adminList": "Admin List",
+    "addAdmin": "Add",
+    "removeAdmin": "Remove Admin",
+    "remove": "Remove",
+    "adminEmailPlaceholder": "Enter email address",
+    "confirmRemove": "Are you sure you want to remove this admin?",
+    "initialBadge": "Initial",
+    "initialCannotRemove": "Initial admin cannot be removed",
+    "id": "ID",
+    "user": "User",
+    "question": "Question",
+    "hexagram": "Hexagram",
+    "changedHexagram": "Changed Hexagram",
+    "public": "Public",
+    "private": "Private",
+    "filterAll": "All",
+    "createdAt": "Created",
+    "actions": "Actions",
+    "detail": "Detail",
+    "interpretationZh": "Interpretation (ZH)",
+    "interpretationEn": "Interpretation (EN)",
+    "castResult": "Cast Data",
+    "hexagramData": "Hexagram Data",
+    "searchByEmail": "Search by email",
+    "totalRecords": "{count} records total",
+    "noRecords": "No divination records",
+    "pageInfo": "Page {page}/{total}"
   }
 }
