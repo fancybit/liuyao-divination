@@ -16,6 +16,12 @@ interface AdminRecord {
   created_at: string
 }
 
+interface UserInfo {
+  id: string
+  username: string
+  email: string
+}
+
 interface DivinationRow {
   id: number
   user_id: string
@@ -30,6 +36,7 @@ interface DivinationRow {
   created_at: string
   cast_result?: string
   user_email?: string
+  user_username?: string
 }
 
 export default function AdminPage() {
@@ -51,6 +58,8 @@ export default function AdminPage() {
   const [searchEmail, setSearchEmail] = useState('')
   const [emailInput, setEmailInput] = useState('')
   const [publicFilter, setPublicFilter] = useState<'all' | 'public' | 'private'>('all')
+  const [users, setUsers] = useState<UserInfo[]>([])
+  const [selectedUserId, setSelectedUserId] = useState<string>('')
 
   // Expanded rows
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
@@ -81,6 +90,7 @@ export default function AdminPage() {
       }
       setIsAdmin(true)
       loadAdmins()
+      loadUsers()
       setChecking(false)
     })()
   }, [])
@@ -91,6 +101,14 @@ export default function AdminPage() {
       .select('*')
       .order('created_at', { ascending: true })
     if (data) setAdmins(data)
+  }
+
+  const loadUsers = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, username, email')
+      .order('username', { ascending: true })
+    if (data) setUsers(data)
   }
 
   // Load records
@@ -108,8 +126,13 @@ export default function AdminPage() {
     if (publicFilter === 'public') query = query.eq('is_public', true)
     if (publicFilter === 'private') query = query.eq('is_public', false)
 
+    // User filter by dropdown selection (precise user_id match)
+    if (selectedUserId) {
+      query = query.eq('user_id', selectedUserId)
+    }
+
     // Search by user email: first find user_ids, then filter
-    if (searchEmail.trim()) {
+    if (searchEmail.trim() && !selectedUserId) {
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id')
@@ -133,13 +156,13 @@ export default function AdminPage() {
       setRecords([])
       setTotalCount(0)
     } else {
-      // Attach user emails
+      // Attach user emails and usernames
       const enriched = await attachUserEmails(data || [])
       setRecords(enriched)
       setTotalCount(count || 0)
     }
     setLoading(false)
-  }, [page, publicFilter, searchEmail])
+  }, [page, publicFilter, searchEmail, selectedUserId])
 
   useEffect(() => {
     if (isAdmin) loadRecords()
@@ -150,11 +173,15 @@ export default function AdminPage() {
     if (userIds.length === 0) return rows
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, email')
+      .select('id, email, username')
       .in('id', userIds)
 
-    const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || [])
-    return rows.map(r => ({ ...r, user_email: emailMap.get(r.user_id) || r.user_id }))
+    const map = new Map(profiles?.map(p => [p.id, { email: p.email, username: p.username }]) || [])
+    return rows.map(r => ({
+      ...r,
+      user_email: map.get(r.user_id)?.email || r.user_id,
+      user_username: map.get(r.user_id)?.username || '',
+    }))
   }
 
   const handleSearch = () => {
@@ -328,6 +355,19 @@ export default function AdminPage() {
           )}
         </div>
 
+        <select
+          value={selectedUserId}
+          onChange={e => { setSelectedUserId(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 max-w-[240px] truncate"
+        >
+          <option value="">{t('allUsers')}</option>
+          {users.map(u => (
+            <option key={u.id} value={u.id}>
+              {u.username} ({u.email})
+            </option>
+          ))}
+        </select>
+
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           {(['all', 'public', 'private'] as const).map(f => (
             <button
@@ -383,8 +423,10 @@ export default function AdminPage() {
                   <>
                     <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{row.id}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs max-w-[160px] truncate" title={row.user_email}>
-                        {row.user_email || row.user_id}
+                      <td className="px-4 py-3 text-gray-600 text-xs max-w-[180px] truncate" title={`${row.user_username || ''} ${row.user_email || ''}`}>
+                        {row.user_username && row.user_email
+                          ? `${row.user_username} (${row.user_email})`
+                          : row.user_email || row.user_id}
                       </td>
                       <td className="px-4 py-3 text-gray-800 max-w-[200px] truncate" title={row.question}>
                         {row.question}

@@ -232,6 +232,7 @@
     "castResult": "排盘数据",
     "hexagramData": "卦象数据",
     "searchByEmail": "按邮箱搜索用户",
+    "allUsers": "全部用户",
     "totalRecords": "共 {count} 条记录",
     "noRecords": "暂无占卜记录",
     "pageInfo": "第 {page}/{total} 页"

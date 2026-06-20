@@ -232,6 +232,7 @@
     "castResult": "Cast Data",
     "hexagramData": "Hexagram Data",
     "searchByEmail": "Search by email",
+    "allUsers": "All Users",
     "totalRecords": "{count} records total",
     "noRecords": "No divination records",
     "pageInfo": "Page {page}/{total}"
