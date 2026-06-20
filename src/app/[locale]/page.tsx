@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Coins, History, Network, Users } from 'lucide-react'
+import AdBanner from '@/components/AdBanner'
 
 export default function Home() {
   const t = useTranslations('home')
@@ -45,8 +46,13 @@ export default function Home() {
         />
       </div>
 
+      {/* 广告卡片 — Features 与 Stats 之间 */}
+      <div className="w-full max-w-4xl mb-12">
+        <AdBanner slotType="card" />
+      </div>
+
       {/* Stats placeholder */}
-      <div className="mt-16 flex items-center space-x-8 text-gray-400">
+      <div className="mt-4 flex items-center space-x-8 text-gray-400">
         <div className="text-center">
           <Users className="inline-block mb-1" size={20} />
           <p className="text-sm">{t('stats.multiUser')}</p>

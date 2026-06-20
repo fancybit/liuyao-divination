@@ -39,6 +39,7 @@
   "nav": {
     "brand": "Yi Nian Tong Xuan",
     "divination": "Divination",
+    "qimen": "Qimen Dunjia",
     "records": "Records",
     "network": "Network",
     "profile": "Profile",
@@ -85,6 +86,8 @@
     "public": "Public",
     "private": "Private",
     "aiInterpreted": "AI Interpreted",
+    "interpretationEn": "Interpretation (English)",
+    "interpretationZh": "Interpretation (Chinese)",
     "delete": "Delete",
     "deleteConfirm": "Delete this divination record?",
     "loadFail": "Failed to load",
@@ -146,6 +149,10 @@
     "emptyDesc": "Once users start divining and form connections, the network will appear here",
     "legend": "Node size = divination count | Lines = divination connections (views/interactions)"
   },
+  "ad": {
+    "label": "Advertisement",
+    "customDefault": "Recommended · Learn More"
+  },
   "hexagram": {
     "palace": "{name} Palace",
     "trigramLayout": "{upper} above {lower} below",
@@ -163,5 +170,36 @@
     "xiangZhuan": "Image",
     "tuanZhuan": "Commentary",
     "footer": "Hexagram {id} · {name}"
+  },
+  "qimen": {
+    "title": "Qimen Dunjia · Time-Based Revolving Chart",
+    "currentTime": "Beijing Time",
+    "refresh": "Refresh",
+    "dunType": "Yin/Yang Dun",
+    "juNumber": "Ju Number",
+    "ju": "Yang ",
+    "juSuffix": "",
+    "solarTerm": "Solar Term",
+    "yuan": "Yuan",
+    "dayStem": "Day Stem",
+    "hourStem": "Hour Stem",
+    "legend": "Legend",
+    "topStem": "Heaven Stem",
+    "topStemDesc": "Heaven Plate Stem (large)",
+    "bottomStem": "Earth Stem",
+    "bottomStemDesc": "Earth Plate Stem (small)",
+    "starLabel": "Stars",
+    "starDesc": "Nine Stars",
+    "doorLabel": "Doors",
+    "doorDesc": "Eight Doors",
+    "godLabel": "Gods",
+    "godDesc": "Eight Gods",
+    "dashedBorder": "Dashed",
+    "emptyDesc": "Void Palace",
+    "empty": "Void",
+    "emptyMark": "○",
+    "horse": "Horse",
+    "horseMark": "☆",
+    "horseDesc": "Horse Star Palace"
   }
 }

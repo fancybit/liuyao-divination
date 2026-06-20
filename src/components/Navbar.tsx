@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
-import { Menu, X, Coins, History, Network, User as UserIcon, LogOut, Globe } from 'lucide-react'
+import { Menu, X, Coins, History, Network, User as UserIcon, LogOut, Globe, Compass } from 'lucide-react'
 
 export default function Navbar() {
   const t = useTranslations('nav')
@@ -42,13 +42,14 @@ export default function Navbar() {
   }
 
   const switchLocale = (locale: string) => {
-    // Set cookie and reload
     document.cookie = `NEXT_LOCALE=${locale};path=/;max-age=31536000`
-    window.location.reload()
+    const cleanPath = pathname.replace(/^\/(zh|en)/, '') || '/'
+    router.push(`/${locale}${cleanPath}`)
   }
 
   const navLinks = [
     { href: '/divination', label: t('divination'), icon: Coins },
+    { href: '/qimen', label: t('qimen'), icon: Compass },
     { href: '/records', label: t('records'), icon: History },
     { href: '/network', label: t('network'), icon: Network },
   ]

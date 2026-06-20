@@ -5,11 +5,13 @@ import { supabase } from '@/lib/supabase'
 import { performFullDivination } from '@/lib/liuyao'
 import toast from 'react-hot-toast'
 import { RefreshCw, Save, Loader2 } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import HexagramCard from '@/components/HexagramCard'
+import AdBanner from '@/components/AdBanner'
 
 export default function DivinationPage() {
   const t = useTranslations('divination')
+  const locale = useLocale()
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState<ReturnType<typeof performFullDivination> | null>(null)
   const [casting, setCasting] = useState(false)
@@ -44,6 +46,7 @@ export default function DivinationPage() {
             original: divResult.originalPan,
             changed: divResult.changedPan,
             question,
+            locale,
           }),
         })
           .then(res => res.json())
@@ -57,7 +60,7 @@ export default function DivinationPage() {
           })
       }
     }, 600)
-  }, [question, t])
+  }, [question, t, locale])
 
   const handleSave = async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -86,7 +89,8 @@ export default function DivinationPage() {
       hexagram_changed: hexagramChanged,
       changing_lines: result.castResult.changingLines,
       cast_result: JSON.stringify(result.castResult.lines),
-      interpretation: result.interpretation,
+      interpretation: locale === 'zh' ? result.interpretation : null,
+      interpretation_en: locale === 'en' ? result.interpretation : null,
     })
     if (error) {
       toast.error(t('saveFail') + ': ' + error.message)
@@ -205,6 +209,9 @@ export default function DivinationPage() {
               <div className="text-gray-400 text-sm">{t('interpretFail')}</div>
             )}
           </div>
+
+          {/* 信息流广告 — 解卦与保存按钮之间 */}
+          <AdBanner slotType="inline" className="mt-6" />
 
           {/* Save button */}
           <div className="text-center">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-function buildPrompt(original: any, changed: any | null, question: string): string {
+function buildPrompt(original: any, changed: any | null, question: string, locale: string): string {
   const linesDesc = original.lines
     .map((l: any, i: number) => {
       const pos = ['初', '二', '三', '四', '五', '上'][i]
@@ -14,7 +14,7 @@ function buildPrompt(original: any, changed: any | null, question: string): stri
     changedDesc = '变卦：' + changed.hexagramSymbol + ' ' + changed.hexagramName + '（' + changed.palace + '宫）'
   }
 
-  return `你是一位精通京房纳甲六爻的易经占卜师。请根据以下卦象数据为用户解卦。
+  const promptZh = `你是一位精通京房纳甲六爻的易经占卜师。请根据以下卦象数据为用户解卦。
 
 用户问题：${question || '未具体提问'}
 
@@ -32,11 +32,35 @@ ${original.changingLines.length > 0 ? '动爻：第' + original.changingLines.jo
 4. 综合判断：给出明确、直接的吉凶结论和建议
 
 请用中文回答，控制在300字以内，语气平实，不要空泛套话。直接给出结论，避免"仅供参考"等过度谨慎措辞。`
+
+  const promptEn = `You are a master of the Jing Fang Najia Liuyao method of I Ching divination. Interpret the following hexagram data for the user.
+
+User's question: ${question || 'No specific question'}
+
+Original hexagram: ${original.hexagramSymbol} ${original.hexagramName} (${original.palace} Palace, element: ${original.palaceElement})
+Self line (Shi Yao): line ${original.shiYao}  Response line (Ying Yao): line ${original.yingYao}
+Six lines layout (top to bottom):
+${linesDesc}
+${changedDesc}
+${original.changingLines.length > 0 ? 'Changing lines: ' + original.changingLines.join(', ') : 'All six lines stable, no changing lines'}
+
+Please interpret from the following angles:
+1. Yong Shen (Use God): Identify the relevant Six Relative based on the user's question, and analyze its strength and vitality in the hexagram
+2. Shi-Ying relationship: Analyze the relationship between the Self line (the querent) and the Response line (the matter asked about)
+3. Changing lines: How the changing lines affect the Yong Shen
+4. Overall judgment: Give a clear, direct conclusion on auspiciousness or inauspiciousness, with practical advice
+
+Answer in English, keep it under 200 words. Be direct and substantive, avoid vague platitudes. Give a clear conclusion without hedging phrases like "for reference only".`
+
+  return locale === 'en' ? promptEn : promptZh
 }
+
+const systemZh = '你是一位精通易经六爻纳甲筮法的占卜师。你的解卦风格：直接、精准、有依据，不故弄玄虚。'
+const systemEn = 'You are a master of the I Ching Liuyao Najia divination method. Your interpretation style: direct, precise, evidence-based, no mystification.'
 
 export async function POST(req: NextRequest) {
   try {
-    const { original, changed, question } = await req.json()
+    const { original, changed, question, locale } = await req.json()
 
     const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
       method: 'POST',
@@ -47,8 +71,8 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: 'qwen-plus',
         messages: [
-          { role: 'system', content: '你是一位精通易经六爻纳甲筮法的占卜师。你的解卦风格：直接、精准、有依据，不故弄玄虚。' },
-          { role: 'user', content: buildPrompt(original, changed, question) },
+          { role: 'system', content: locale === 'en' ? systemEn : systemZh },
+          { role: 'user', content: buildPrompt(original, changed, question, locale) },
         ],
         temperature: 0.7,
         max_tokens: 600,

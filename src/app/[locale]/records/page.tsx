@@ -6,13 +6,14 @@ import { DivinationRecord } from '@/types'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, Trash2, Eye, EyeOff, Calendar, Tag, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import toast from 'react-hot-toast'
 import HexagramCard from '@/components/HexagramCard'
 import { NaJiaResult } from '@/lib/liuyao'
 
 export default function RecordsPage() {
   const t = useTranslations('records')
+  const locale = useLocale()
   const [records, setRecords] = useState<DivinationRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
@@ -90,13 +91,20 @@ export default function RecordsPage() {
           original: record.hexagram_original,
           changed: record.hexagram_changed,
           question: record.question,
+          locale,
         }),
       })
       const data = await res.json()
+      const text = data.interpretation || data.error || t('interpretFail')
       setAiInterpretations(prev => ({
         ...prev,
-        [record.id]: data.interpretation || data.error || t('interpretFail'),
+        [record.id]: text,
       }))
+
+      // 保存到数据库
+      const updateField = locale === 'en' ? 'interpretation_en' : 'interpretation'
+      await supabase.from('divination_records').update({ [updateField]: text }).eq('id', record.id)
+      setRecords(prev => prev.map(r => r.id === record.id ? { ...r, [updateField]: text } : r))
     } catch {
       setAiInterpretations(prev => ({ ...prev, [record.id]: t('interpretFail') }))
     }
@@ -122,7 +130,7 @@ export default function RecordsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {records.map(record => {
+          {records.map((record, idx) => {
             const isExpanded = expandedIds.has(record.id)
             // 兼容旧数据：优先用 name/symbol，回退到 hexagramName/hexagramSymbol
             const origData = record.hexagram_original as unknown as NaJiaResult
@@ -131,7 +139,8 @@ export default function RecordsPage() {
             const displaySymbol = record.hexagram_original?.symbol || origData?.hexagramSymbol || '☯'
 
             return (
-              <div key={record.id} className="card hover:shadow-lg transition-shadow">
+              <div key={record.id}>
+                <div className="card hover:shadow-lg transition-shadow">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
@@ -211,11 +220,23 @@ export default function RecordsPage() {
                     )}
 
                     {/* 解卦 */}
-                    {record.interpretation && (
+                    {(locale === 'en' ? record.interpretation_en : record.interpretation) && (
                       <div className="bg-sky-50 rounded-lg p-4 border border-sky-200">
                         <h3 className="text-sm font-semibold text-primary-700 mb-2">{t('interpretation')}</h3>
                         <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
-                          {record.interpretation}
+                          {locale === 'en' ? record.interpretation_en : record.interpretation}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 备选语言解卦 */}
+                    {(locale === 'zh' ? record.interpretation_en : record.interpretation) && (
+                      <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                        <h3 className="text-sm font-semibold text-amber-700 mb-2">
+                          {locale === 'zh' ? t('interpretationEn') : t('interpretationZh')}
+                        </h3>
+                        <div className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">
+                          {locale === 'zh' ? record.interpretation_en : record.interpretation}
                         </div>
                       </div>
                     )}
@@ -249,6 +270,11 @@ export default function RecordsPage() {
                   </div>
                 )}
               </div>
+              {/* 每 3 条记录后插入信息流广告 */}
+              {(idx + 1) % 3 === 0 && idx < records.length - 1 && (
+                <AdBanner key={`ad-${record.id}`} slotType="inline" className="py-2" />
+              )}
+            </div>
             )
           })}
         </div>

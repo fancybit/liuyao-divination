@@ -32,6 +32,7 @@ export interface DivinationRecord {
   changing_lines: number[];
   cast_result: string;
   interpretation: string;
+  interpretation_en: string | null;
   created_at: string;
   is_public: boolean;
 }
