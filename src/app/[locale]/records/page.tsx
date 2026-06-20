@@ -9,6 +9,7 @@ import { Loader2, Trash2, Eye, EyeOff, Calendar, Tag, ChevronDown, ChevronUp, Sp
 import { useTranslations, useLocale } from 'next-intl'
 import toast from 'react-hot-toast'
 import HexagramCard from '@/components/HexagramCard'
+import AdBanner from '@/components/AdBanner'
 import { NaJiaResult } from '@/lib/liuyao'
 
 export default function RecordsPage() {
