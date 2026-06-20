@@ -169,7 +169,7 @@ export default function AdminPage() {
   }, [isAdmin, loadRecords])
 
   const attachUserEmails = async (rows: any[]): Promise<DivinationRow[]> => {
-    const userIds = [...new Set(rows.map(r => r.user_id))]
+    const userIds = Array.from(new Set(rows.map(r => r.user_id)))
     if (userIds.length === 0) return rows
     const { data: profiles } = await supabase
       .from('profiles')
