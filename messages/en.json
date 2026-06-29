@@ -8,11 +8,11 @@
     "edit": "Edit"
   },
   "site": {
-    "title": "Yi Nian Tong Xuan - I Ching Hexagram Divination",
-    "description": "Yi Nian Tong Xuan: consult the way of Heaven and Earth with three coins. I Ching online divination with Najia charting, hexagram & line texts, and divination records."
+    "title": "Yi Yan Tong Xuan - I Ching Hexagram Divination",
+    "description": "Yi Yan Tong Xuan: consult the way of Heaven and Earth with three coins. I Ching online divination with Najia charting, hexagram & line texts, and divination records."
   },
   "home": {
-    "title": "Yi Nian Tong Xuan",
+    "title": "Yi Yan Tong Xuan",
     "heroSub": "Consult the Way of Heaven and Earth with Three Coins",
     "heroDesc": "Following the 64 hexagram system of the I Ching, cast coins to form hexagrams, observe images and interpret texts. Sincerity brings clarity; doubt invites questions.",
     "cta": "Start Divination",
@@ -37,7 +37,7 @@
     }
   },
   "nav": {
-    "brand": "Yi Nian Tong Xuan",
+    "brand": "Yi Yan Tong Xuan",
     "divination": "Divination",
     "qimen": "Qimen Dunjia",
     "records": "Records",
@@ -49,7 +49,7 @@
     "admin": "Admin"
   },
   "divination": {
-    "title": "Yi Nian Tong Xuan · Najia Liuyao",
+    "title": "Yi Yan Tong Xuan · Najia Liuyao",
     "subtitle": "Jing Fang Najia Method · Three-Coin Casting · Six Relatives & Six Beasts",
     "questionLabel": "What do you wish to ask?",
     "questionPlaceholder": "e.g. How will my career be this year?",
