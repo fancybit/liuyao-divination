@@ -118,7 +118,7 @@ export default function Navbar() {
                   <Link href="/pricing" className="flex items-center gap-1 text-amber-600 hover:text-amber-700 text-sm font-medium">
                     <Coins size={16} />
                     <span>{coins}</span>
-                    {tierName && (
+                    {tierName && tierColor && (
                       <span className="text-xs px-1.5 py-0.5 rounded-full font-medium ml-1" style={{ backgroundColor: tierColor + '20', color: tierColor }}>
                         {tierName}
                       </span>
