@@ -47,7 +47,8 @@
     "logout": "退出登录",
     "language": "语言",
     "admin": "后台管理",
-    "pricing": "充值"
+    "pricing": "充值",
+    "coins": "言币"
   },
   "divination": {
     "title": "一言通玄 · 纳甲六爻",

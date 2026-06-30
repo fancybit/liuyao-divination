@@ -194,6 +194,17 @@ export default function Navbar() {
             ))}
             {user ? (
               <>
+                {coins !== null && (
+                  <Link href="/pricing" onClick={() => setMenuOpen(false)} className="flex items-center space-x-2 px-4 py-3 text-amber-600 font-medium">
+                    <Coins size={18} />
+                    <span>{coins} {t('coins')}</span>
+                    {tierName && tierColor && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium ml-1" style={{ backgroundColor: tierColor + '20', color: tierColor }}>
+                        {tierName}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center space-x-2 px-4 py-3 text-gray-600 hover:bg-primary-50">
                   <UserIcon size={18} />
                   <span>{t('profile')}</span>
