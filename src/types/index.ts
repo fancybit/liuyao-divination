@@ -1,3 +1,42 @@
+export interface UserTier {
+  id: number;
+  name: string;
+  min_exp: number;
+  color: string;
+  created_at: string;
+}
+
+export interface UserCredits {
+  id: number;
+  user_id: string;
+  remaining_coins: number;
+  total_divinations: number;
+  total_exp: number;
+  current_tier_id: number;
+  created_at: string;
+  updated_at: string;
+  tier_name?: string;
+  tier_color?: string;
+}
+
+export interface SystemConfig {
+  id: number;
+  key: string;
+  value: string;
+  description: string;
+  updated_at: string;
+}
+
+export interface BillingRecord {
+  id: number;
+  user_id: string;
+  credits_added: number;
+  amount: number;
+  payment_method: string;
+  status: string;
+  created_at: string;
+}
+
 export interface HexagramData {
   id: number;
   name: string;
@@ -35,6 +74,7 @@ export interface DivinationRecord {
   interpretation_en: string | null;
   created_at: string;
   is_public: boolean;
+  coins_used?: number;
 }
 
 export interface UserProfile {

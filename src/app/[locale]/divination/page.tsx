@@ -1,25 +1,46 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { checkAndDeductCoins } from '@/lib/billing'
 import { performFullDivination } from '@/lib/liuyao'
 import toast from 'react-hot-toast'
-import { RefreshCw, Save, Loader2 } from 'lucide-react'
+import { RefreshCw, Save, Loader2, Coins, AlertTriangle } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import HexagramCard from '@/components/HexagramCard'
 import AdBanner from '@/components/AdBanner'
 
 export default function DivinationPage() {
   const t = useTranslations('divination')
+  const tBilling = useTranslations('billing')
   const locale = useLocale()
+  const router = useRouter()
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState<ReturnType<typeof performFullDivination> | null>(null)
   const [casting, setCasting] = useState(false)
   const [castProgress, setCastProgress] = useState(0)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [remainingCoins, setRemainingCoins] = useState<number | null>(null)
+  const [showInsufficient, setShowInsufficient] = useState(false)
 
   const [interpreting, setInterpreting] = useState(false)
+
+  // 加载用户言币
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        const { data } = await supabase
+          .from('user_credits')
+          .select('remaining_coins')
+          .eq('user_id', session.user.id)
+          .maybeSingle()
+        if (data) setRemainingCoins(data.remaining_coins)
+      }
+    })()
+  }, [saved])
 
   const handleCast = useCallback(() => {
     setCasting(true)
@@ -70,7 +91,23 @@ export default function DivinationPage() {
     }
     if (!result) return
 
+    // 检查并扣币
+    const deductResult = await checkAndDeductCoins(session.user.id)
+    if (!deductResult.success) {
+      if (deductResult.error === 'insufficient') {
+        setShowInsufficient(true)
+      } else {
+        toast.error(deductResult.error || t('saveFail'))
+      }
+      return
+    }
+
     setSaving(true)
+
+    // 升级提示
+    if (deductResult.upgraded && deductResult.tier) {
+      toast.success(tBilling('upgradedToast', { tier: deductResult.tier.name }))
+    }
 
     // 为 NaJiaResult 增加 name / symbol 别名字段，确保与 HexagramData 接口兼容
     const toRecordHexagram = (pan: typeof result.originalPan) => ({
@@ -91,12 +128,14 @@ export default function DivinationPage() {
       cast_result: JSON.stringify(result.castResult.lines),
       interpretation: locale === 'zh' ? result.interpretation : null,
       interpretation_en: locale === 'en' ? result.interpretation : null,
+      coins_used: 5,
     })
     if (error) {
       toast.error(t('saveFail') + ': ' + error.message)
     } else {
       toast.success(t('saveSuccess'))
       setSaved(true)
+      setRemainingCoins(deductResult.remaining)
     }
     setSaving(false)
   }
@@ -117,6 +156,12 @@ export default function DivinationPage() {
           placeholder={t('questionPlaceholder')}
           disabled={casting}
         />
+        {remainingCoins !== null && (
+          <div className="mt-3 flex items-center gap-1 text-xs text-gray-500">
+            <Coins size={14} className="text-amber-500" />
+            <span>{tBilling('remaining')}: <strong className="text-amber-600">{remainingCoins}</strong></span>
+          </div>
+        )}
       </div>
 
       {/* Cast button */}
@@ -223,6 +268,30 @@ export default function DivinationPage() {
                 {saving ? t('saving') : t('saveRecord')}
               </button>
             )}
+          </div>
+        </div>
+      )}
+      {/* 言币不足弹窗 */}
+      {showInsufficient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm mx-4 text-center">
+            <AlertTriangle size={48} className="mx-auto text-amber-500 mb-4" />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{tBilling('insufficient')}</h2>
+            <p className="text-gray-500 mb-6">{tBilling('pleaseRecharge')}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setShowInsufficient(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                {tBilling('cancel')}
+              </button>
+              <button
+                onClick={() => router.push('/pricing')}
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                {tBilling('recharge')}
+              </button>
+            </div>
           </div>
         </div>
       )}

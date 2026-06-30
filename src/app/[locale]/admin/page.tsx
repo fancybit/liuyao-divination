@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import {
   Loader2, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
-  Shield, UserPlus, UserMinus, ShieldAlert, Eye, EyeOff, X
+  Shield, UserPlus, UserMinus, ShieldAlert, Eye, EyeOff, X, Coins, Plus, Trash2
 } from 'lucide-react'
 
 interface AdminRecord {
@@ -14,12 +14,6 @@ interface AdminRecord {
   email: string
   is_initial: boolean
   created_at: string
-}
-
-interface UserInfo {
-  id: string
-  username: string
-  email: string
 }
 
 interface DivinationRow {
@@ -36,7 +30,20 @@ interface DivinationRow {
   created_at: string
   cast_result?: string
   user_email?: string
-  user_username?: string
+  coins_used?: number
+}
+
+interface TierData {
+  id?: number
+  name: string
+  min_exp: number
+  color: string
+}
+
+interface CreditsSummary {
+  total_users: number
+  total_coins_remaining: number
+  tier_distribution: { tier_name: string; count: number }[]
 }
 
 export default function AdminPage() {
@@ -58,8 +65,6 @@ export default function AdminPage() {
   const [searchEmail, setSearchEmail] = useState('')
   const [emailInput, setEmailInput] = useState('')
   const [publicFilter, setPublicFilter] = useState<'all' | 'public' | 'private'>('all')
-  const [users, setUsers] = useState<UserInfo[]>([])
-  const [selectedUserId, setSelectedUserId] = useState<string>('')
 
   // Expanded rows
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
@@ -69,6 +74,18 @@ export default function AdminPage() {
   const [showAdminPanel, setShowAdminPanel] = useState(false)
   const [newAdminEmail, setNewAdminEmail] = useState('')
   const [adminLoading, setAdminLoading] = useState(false)
+
+  // Tab
+  const [activeTab, setActiveTab] = useState<'records' | 'billing'>('records')
+
+  // Billing / Tiers
+  const [tiers, setTiers] = useState<TierData[]>([])
+  const [tiersLoading, setTiersLoading] = useState(false)
+  const [creditsSummary, setCreditsSummary] = useState<CreditsSummary | null>(null)
+
+  // System config
+  const [newUserFreeCoins, setNewUserFreeCoins] = useState('50')
+  const [expPerCoin, setExpPerCoin] = useState('1')
 
   // Check if current user is admin
   useEffect(() => {
@@ -90,7 +107,8 @@ export default function AdminPage() {
       }
       setIsAdmin(true)
       loadAdmins()
-      loadUsers()
+      loadTiers()
+      loadCreditsSummary()
       setChecking(false)
     })()
   }, [])
@@ -101,14 +119,6 @@ export default function AdminPage() {
       .select('*')
       .order('created_at', { ascending: true })
     if (data) setAdmins(data)
-  }
-
-  const loadUsers = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, username, email')
-      .order('username', { ascending: true })
-    if (data) setUsers(data)
   }
 
   // Load records
@@ -126,13 +136,7 @@ export default function AdminPage() {
     if (publicFilter === 'public') query = query.eq('is_public', true)
     if (publicFilter === 'private') query = query.eq('is_public', false)
 
-    // User filter by dropdown selection (precise user_id match)
-    if (selectedUserId) {
-      query = query.eq('user_id', selectedUserId)
-    }
-
-    // Search by user email: first find user_ids, then filter
-    if (searchEmail.trim() && !selectedUserId) {
+    if (searchEmail.trim()) {
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id')
@@ -156,32 +160,27 @@ export default function AdminPage() {
       setRecords([])
       setTotalCount(0)
     } else {
-      // Attach user emails and usernames
       const enriched = await attachUserEmails(data || [])
       setRecords(enriched)
       setTotalCount(count || 0)
     }
     setLoading(false)
-  }, [page, publicFilter, searchEmail, selectedUserId])
+  }, [page, publicFilter, searchEmail])
 
   useEffect(() => {
     if (isAdmin) loadRecords()
   }, [isAdmin, loadRecords])
 
   const attachUserEmails = async (rows: any[]): Promise<DivinationRow[]> => {
-    const userIds = Array.from(new Set(rows.map(r => r.user_id)))
+    const userIds = [...new Set(rows.map(r => r.user_id))]
     if (userIds.length === 0) return rows
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, email, username')
+      .select('id, email')
       .in('id', userIds)
 
-    const map = new Map(profiles?.map(p => [p.id, { email: p.email, username: p.username }]) || [])
-    return rows.map(r => ({
-      ...r,
-      user_email: map.get(r.user_id)?.email || r.user_id,
-      user_username: map.get(r.user_id)?.username || '',
-    }))
+    const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || [])
+    return rows.map(r => ({ ...r, user_email: emailMap.get(r.user_id) || r.user_id }))
   }
 
   const handleSearch = () => {
@@ -233,6 +232,84 @@ export default function AdminPage() {
     setAdminLoading(false)
   }
 
+  // --- Yan Coin Settings ---
+  const loadTiers = async () => {
+    const res = await fetch('/api/admin/tiers')
+    const data = await res.json()
+    if (data.tiers) setTiers(data.tiers)
+    if (data.new_user_free_coins) setNewUserFreeCoins(data.new_user_free_coins)
+    if (data.exp_per_coin) setExpPerCoin(data.exp_per_coin)
+  }
+
+  const loadCreditsSummary = async () => {
+    const { data: allCredits } = await supabase.from('user_credits').select('*, user_tiers(name)')
+    if (!allCredits) return
+
+    let totalCoins = 0
+    const distMap: Record<string, number> = {}
+    for (const c of allCredits) {
+      totalCoins += c.remaining_coins || 0
+      const name = c.user_tiers?.name || 'Unknown'
+      distMap[name] = (distMap[name] || 0) + 1
+    }
+    setCreditsSummary({
+      total_users: allCredits.length,
+      total_coins_remaining: totalCoins,
+      tier_distribution: Object.entries(distMap).map(([tier_name, count]) => ({ tier_name, count })),
+    })
+  }
+
+  const handleTierChange = (index: number, field: keyof TierData, value: string | number) => {
+    setTiers(prev => prev.map((t, i) => i === index ? { ...t, [field]: value } : t))
+  }
+
+  const handleAddTier = () => {
+    setTiers(prev => [...prev, {
+      name: 'New Tier',
+      min_exp: 0,
+      color: '#6b7280',
+    }])
+  }
+
+  const handleDeleteTier = async (index: number) => {
+    const tier = tiers[index]
+    if (tier.id) {
+      const res = await fetch('/api/admin/tiers', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: tier.id }),
+      })
+      const result = await res.json()
+      if (result.error) {
+        alert(result.error)
+        return
+      }
+    }
+    setTiers(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleSaveTiers = async () => {
+    setTiersLoading(true)
+    const res = await fetch('/api/admin/tiers', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tiers,
+        new_user_free_coins: newUserFreeCoins,
+        exp_per_coin: expPerCoin,
+      }),
+    })
+    const result = await res.json()
+    if (result.error) {
+      alert(result.error)
+    } else {
+      alert(t('tiersSaved'))
+      loadTiers()
+      loadCreditsSummary()
+    }
+    setTiersLoading(false)
+  }
+
   if (checking) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -277,7 +354,29 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* Admin Management Panel */}
+      {/* Tabs */}
+      <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-xl">
+        <button
+          onClick={() => setActiveTab('records')}
+          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'records' ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          {t('divinationRecords')}
+        </button>
+        <button
+          onClick={() => setActiveTab('billing')}
+          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'billing' ? 'bg-white text-primary-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Coins size={14} className="inline mr-1" />
+          {t('yanCoinSettings')}
+        </button>
+      </div>
+
+      {activeTab === 'records' && (
+        <>
       {showAdminPanel && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -355,19 +454,6 @@ export default function AdminPage() {
           )}
         </div>
 
-        <select
-          value={selectedUserId}
-          onChange={e => { setSelectedUserId(e.target.value); setPage(1) }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 max-w-[240px] truncate"
-        >
-          <option value="">{t('allUsers')}</option>
-          {users.map(u => (
-            <option key={u.id} value={u.id}>
-              {u.username} ({u.email})
-            </option>
-          ))}
-        </select>
-
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           {(['all', 'public', 'private'] as const).map(f => (
             <button
@@ -423,10 +509,8 @@ export default function AdminPage() {
                   <>
                     <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{row.id}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs max-w-[180px] truncate" title={`${row.user_username || ''} ${row.user_email || ''}`}>
-                        {row.user_username && row.user_email
-                          ? `${row.user_username} (${row.user_email})`
-                          : row.user_email || row.user_id}
+                      <td className="px-4 py-3 text-gray-600 text-xs max-w-[160px] truncate" title={row.user_email}>
+                        {row.user_email || row.user_id}
                       </td>
                       <td className="px-4 py-3 text-gray-800 max-w-[200px] truncate" title={row.question}>
                         {row.question}
@@ -546,6 +630,138 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
+
+      {/* Yan Coin Settings Tab */}
+      {activeTab === 'billing' && (
+        <div>
+          {/* Credits Summary */}
+          {creditsSummary && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <p className="text-sm text-gray-500">{t('totalUsers')}</p>
+                <p className="text-2xl font-bold text-gray-800">{creditsSummary.total_users}</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <p className="text-sm text-gray-500">{t('totalCoins')}</p>
+                <p className="text-2xl font-bold text-amber-600">{creditsSummary.total_coins_remaining}</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <p className="text-sm text-gray-500">{t('tierDistribution')}</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {creditsSummary.tier_distribution.map(d => (
+                    <span key={d.tier_name} className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full">
+                      {d.tier_name}: {d.count}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* System Config */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('yanCoinConfig')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">{t('newUserFreeCoins')}</label>
+                <input
+                  type="number"
+                  value={newUserFreeCoins}
+                  onChange={e => setNewUserFreeCoins(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  min="0"
+                />
+                <p className="text-xs text-gray-400 mt-1">{t('newUserFreeCoinsDesc')}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">{t('expPerCoin')}</label>
+                <input
+                  type="number"
+                  value={expPerCoin}
+                  onChange={e => setExpPerCoin(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  min="0"
+                />
+                <p className="text-xs text-gray-400 mt-1">{t('expPerCoinDesc')}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tiers Table */}
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-6">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800">{t('tierManagement')}</h2>
+              <button
+                onClick={handleAddTier}
+                className="flex items-center gap-1 text-xs px-3 py-1.5 bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors"
+              >
+                <Plus size={14} />
+                {t('addTier')}
+              </button>
+            </div>
+            <div className="overflow-x-auto p-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left px-3 py-2 font-medium text-gray-500">{t('tierName')}</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-500">{t('minExp')}</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-500">{t('color')}</th>
+                    <th className="text-left px-3 py-2 font-medium text-gray-500 w-16">{t('actions')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tiers.map((tier, i) => (
+                    <tr key={tier.id || `new-${i}`} className="border-b border-gray-100">
+                      <td className="px-3 py-2">
+                        <input
+                          value={tier.name}
+                          onChange={e => handleTierChange(i, 'name', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary-300"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="number"
+                          value={tier.min_exp}
+                          onChange={e => handleTierChange(i, 'min_exp', parseInt(e.target.value) || 0)}
+                          className="w-24 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary-300"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input
+                          type="color"
+                          value={tier.color}
+                          onChange={e => handleTierChange(i, 'color', e.target.value)}
+                          className="w-10 h-8 border border-gray-200 rounded cursor-pointer"
+                        />
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => handleDeleteTier(i)}
+                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSaveTiers}
+            disabled={tiersLoading}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm font-medium"
+          >
+            {tiersLoading ? <Loader2 size={16} className="inline animate-spin mr-1" /> : null}
+            {t('saveSettings')}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

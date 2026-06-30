@@ -13,6 +13,9 @@ export default function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const [username, setUsername] = useState<string>('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [coins, setCoins] = useState<number | null>(null)
+  const [tierName, setTierName] = useState<string | null>(null)
+  const [tierColor, setTierColor] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const router = useRouter()
@@ -24,6 +27,7 @@ export default function Navbar() {
       if (session?.user) {
         fetchProfile(session.user.id)
         checkAdmin(session.user.email!)
+        fetchCredits(session.user.id)
       }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -31,9 +35,13 @@ export default function Navbar() {
       if (session?.user) {
         fetchProfile(session.user.id)
         checkAdmin(session.user.email!)
+        fetchCredits(session.user.id)
       } else {
         setUsername('')
         setIsAdmin(false)
+        setCoins(null)
+        setTierName(null)
+        setTierColor(null)
       }
     })
     return () => subscription.unsubscribe()
@@ -42,6 +50,17 @@ export default function Navbar() {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('username').eq('id', userId).single()
     if (data?.username) setUsername(data.username)
+  }
+
+  const fetchCredits = async (userId: string) => {
+    const { data } = await supabase.from('user_credits').select('remaining_coins, user_tiers(name, color)').eq('user_id', userId).maybeSingle()
+    if (data) {
+      setCoins(data.remaining_coins)
+      if (data.user_tiers) {
+        setTierName(data.user_tiers.name)
+        setTierColor(data.user_tiers.color)
+      }
+    }
   }
 
   const checkAdmin = async (email: string) => {
@@ -95,6 +114,17 @@ export default function Navbar() {
             ))}
             {user ? (
               <div className="flex items-center space-x-3">
+                {coins !== null && (
+                  <Link href="/pricing" className="flex items-center gap-1 text-amber-600 hover:text-amber-700 text-sm font-medium">
+                    <Coins size={16} />
+                    <span>{coins}</span>
+                    {tierName && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium ml-1" style={{ backgroundColor: tierColor + '20', color: tierColor }}>
+                        {tierName}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 <Link href="/profile" className="flex items-center space-x-1 text-gray-600 hover:text-primary-600">
                   <UserIcon size={18} />
                   <span className="text-sm">{username || user.email?.split('@')[0]}</span>
