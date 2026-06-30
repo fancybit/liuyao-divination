@@ -274,9 +274,13 @@ export default function AdminPage() {
   const handleDeleteTier = async (index: number) => {
     const tier = tiers[index]
     if (tier.id) {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/admin/tiers', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({ id: tier.id }),
       })
       const result = await res.json()
@@ -290,9 +294,13 @@ export default function AdminPage() {
 
   const handleSaveTiers = async () => {
     setTiersLoading(true)
+    const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch('/api/admin/tiers', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+      },
       body: JSON.stringify({
         tiers,
         new_user_free_coins: newUserFreeCoins,

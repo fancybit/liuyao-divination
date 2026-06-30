@@ -53,7 +53,19 @@ export async function GET() {
 // PUT /api/admin/tiers — 修改等级 + 系统配置
 export async function PUT(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
+  let { data: { session } } = await supabase.auth.getSession()
+
+  // 兜底：从 Authorization header 获取 token 并设置 session
+  if (!session?.user) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7)
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+      if (user && !userError) {
+        session = { user, ...session } as any
+      }
+    }
+  }
 
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -137,7 +149,18 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/admin/tiers — 删除等级
 export async function DELETE(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
+  let { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.user) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7)
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+      if (user && !userError) {
+        session = { user, ...session } as any
+      }
+    }
+  }
 
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
