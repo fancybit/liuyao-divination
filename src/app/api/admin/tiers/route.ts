@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
           value: String(body.new_user_free_coins),
           description: '新用户注册赠送言币数',
           updated_at: new Date().toISOString(),
-        })
+        }, { onConflict: 'key' })
       if (error) results.push({ config: 'new_user_free_coins', error: error.message })
       else results.push({ config: 'new_user_free_coins', success: true })
     }
@@ -123,7 +123,7 @@ export async function PUT(request: NextRequest) {
           value: String(body.exp_per_coin),
           description: '每消费1言币获得的经验值',
           updated_at: new Date().toISOString(),
-        })
+        }, { onConflict: 'key' })
       if (error) results.push({ config: 'exp_per_coin', error: error.message })
       else results.push({ config: 'exp_per_coin', success: true })
     }

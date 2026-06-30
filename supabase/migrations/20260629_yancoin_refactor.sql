@@ -47,6 +47,9 @@ CREATE POLICY "Admins can insert system_config" ON system_config
 CREATE POLICY "Admins can update system_config" ON system_config
   FOR UPDATE USING (
     EXISTS (SELECT 1 FROM admins WHERE email = (SELECT email FROM auth.users WHERE id = auth.uid()))
+  )
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM admins WHERE email = (SELECT email FROM auth.users WHERE id = auth.uid()))
   );
 
 -- 默认配置
