@@ -56,9 +56,9 @@ export default function Navbar() {
     const { data } = await supabase.from('user_credits').select('remaining_coins, user_tiers(name, color)').eq('user_id', userId).maybeSingle()
     if (data) {
       setCoins(data.remaining_coins)
-      if (data.user_tiers) {
-        setTierName(data.user_tiers.name)
-        setTierColor(data.user_tiers.color)
+      if (data.user_tiers && data.user_tiers.length > 0) {
+        setTierName(data.user_tiers[0].name)
+        setTierColor(data.user_tiers[0].color)
       }
     }
   }
